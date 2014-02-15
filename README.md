@@ -82,7 +82,7 @@ variable prefix explanation:
 
     $arr_new_cookie=get_cookies_from_heads($ref_arr_head, $request_url)+$arr_old_cookie;//don't change the order
 
-//finally, file_get_contents+stream_context_create+$http_response_header is more convinient thant post_to_host:
+//finally, file_get_contents+stream_context_create+$http_response_header is more convenient thant post_to_host:
 
     $context=stream_context_create(array('http'=>array('method'=>'POST',
                                                        'timeout'=>15,

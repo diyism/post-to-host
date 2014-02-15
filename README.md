@@ -81,3 +81,17 @@ variable prefix explanation:
 //get cookies against url/host:
 
     $arr_new_cookie=get_cookies_from_heads($ref_arr_head, $request_url)+$arr_old_cookie;//don't change the order
+
+//finally, file_get_contents+stream_context_create+$http_response_header is more convinient thant post_to_host:
+
+    $context=stream_context_create(array('http'=>array('method'=>'POST',
+                                                       'timeout'=>15,
+                                                       'header'=>"Host: test.appspot.com\r\n",
+                                                       'content'=>http_build_query($arr_data)
+                                                      ),
+                                         'ssl'=>array('verify_peer'=>true,
+                                                      'cafile'=>'../ca-bundle.crt'
+                                                     )
+                                        )
+                                  );
+    echo file_get_contents('https://74.125.128.103', false, $context);

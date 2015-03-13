@@ -95,3 +95,50 @@ variable prefix explanation:
                                         )
                                   );
     echo file_get_contents('https://74.125.128.103', false, $context);
+
+//best
+
+    function curl_to_host($method, $url, $headers, $data, &$resp_headers, $total_timeout=20, $proxy='')
+             {$ch=curl_init($url);
+              curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, @$GLOBALS['POST_TO_HOST.LINE_TIMEOUT']?$GLOBALS['POST_TO_HOST.LINE_TIMEOUT']:5);
+              curl_setopt($ch, CURLOPT_TIMEOUT, $total_timeout);
+              curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+              curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+              curl_setopt($ch, CURLOPT_HEADER, 1);
+
+              if ($proxy)
+                 {$proxy=explode(':', $proxy);
+                  curl_setopt($ch, CURLOPT_PROXYTYPE, @$proxy[2]==='SOCKS5'?CURLPROXY_SOCKS5:CURLPROXY_HTTP);
+                  curl_setopt($ch, CURLOPT_PROXY, $proxy[0].':'.$proxy[1]);
+                 }
+
+              if (stripos($url, 'https')===0)
+                 {curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+                 }
+
+              if ($method=='POST')
+                 {curl_setopt($ch, CURLOPT_POST, true);
+                  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+                 }
+              foreach ($headers as $k=>$v)
+                      {$headers[$k]=str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', $k)))).': '.$v;
+                      }
+              curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+              $rtn=curl_exec($ch);
+              curl_close($ch);
+
+              $rtn=explode("\r\n\r\nHTTP/", $rtn, 2);    //to deal with "HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 200 OK...\r\n\r\n..." header
+              $rtn=(count($rtn)>1 ? 'HTTP/' : '').array_pop($rtn);
+              list($str_resp_headers, $rtn)=explode("\r\n\r\n", $rtn, 2);
+
+              $str_resp_headers=explode("\r\n", $str_resp_headers);
+              array_shift($str_resp_headers);    //get rid of "HTTP/1.1 200 OK"
+              $resp_headers=array();
+              foreach ($str_resp_headers as $k=>$v)
+                      {$v=explode(': ', $v, 2);
+                       $resp_headers[$v[0]]=$v[1];
+                      }
+
+              return $rtn;
+             }
